@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- http://blog.flexexamples.com/2008/01/22/displaying-a-webcams-video-in-a-flex-videodisplay-control/ -->
+<mx:Application name="VideoDisplay_attachCamera_test"
+        xmlns:mx="http://www.adobe.com/2006/mxml"
+        layout="vertical"
+        verticalAlign="middle"
+        backgroundColor="white">
+ 
+    <mx:Script>
+        <![CDATA[
+            import mx.controls.Alert;
+            import mx.collections.ArrayCollection;
+	    import mx.controls.Image;
+	    import mx.controls.VideoDisplay;
+
+ private var ticker:Timer = new Timer(1);
+
+	    private function videoDisplay_creationComplete():void {
+                var camera:Camera = Camera.getCamera();
+                if (camera) {
+		    vbox0.height = 0;
+
+		    vbox0.width = 0;
+                    videoDisplay.attachCamera(camera);
+		    configuraTimer();
+			
+                } else {
+                    Alert.show("You don't seem to have a camera.");
+                }
+            }
+
+	    private function takePicture(event:TimerEvent):void{
+		var snapshot:BitmapData = new BitmapData(videoDisplay.width, videoDisplay.height, true);
+		snapshot.draw(videoDisplay);
+		var snapshotbitmap:Bitmap = new Bitmap(snapshot);	
+
+
+		var myImage:Image = new Image();
+		myImage.source = snapshotbitmap;
+		myImage.x =  Math.round( Math.random() * 640 );
+		myImage.y =  Math.round( Math.random() * 480 );
+		myCanvas.addChild(myImage);
+
+		
+	    }
+
+	 private function configuraTimer():void{ 		
+		ticker.addEventListener(TimerEvent.TIMER, takePicture);
+		ticker.start();
+	}
+
+        ]]>
+    </mx:Script>
+
+
+<!--mx:TileList id="tileList" dataProvider="{arrColl}" width="800" height="250" columnWidth="160"  rowHeight="120" verticalScrollPolicy="on"  dataChange="validateNow()" >
+            <mx:itemRenderer>
+              <mx:Component>
+			<mx:Image source="{data.imagem}" />
+                </mx:Component>
+            </mx:itemRenderer>
+</mx:TileList-->
+  <mx:VBox id="vbox0">
+    <mx:VideoDisplay id="videoDisplay"
+            creationComplete="videoDisplay_creationComplete();"
+            width="160"
+            height="120" /> 
+
+  
+  </mx:VBox>
+ <mx:Canvas id="myCanvas" 
+      height="100%" width="100%"
+      borderStyle="none" 
+      backgroundColor="white">
+
+ </mx:Canvas>
+
+
+  <!--mx:Button id="button"
+            label="Run"
+            click="takePicture(null);" /-->
+</mx:Application>

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- http://blog.flexexamples.com/2008/01/22/displaying-a-webcams-video-in-a-flex-videodisplay-control/ -->
+<mx:Application name="VideoDisplay_attachCamera_test"
+        xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:s="library://ns.adobe.com/flex/spark"
+         layout="absolute"
+  applicationComplete="creationComplete()"
+  width="100%"
+  height="100%"
+ 
+  frameRate="100">
+ 
+    <mx:Script>
+        <![CDATA[
+           
+	    import mx.controls.Alert;
+            import mx.collections.ArrayCollection;
+	    import mx.controls.Image;
+	    import mx.controls.VideoDisplay;
+	    import flash.media.Camera;
+import flash.filters.*;
+		private var ticker:Timer = new Timer(1);
+		private var contador:int = 0;
+		private var imagens: Array = new Array()
+                private var camera:Camera = Camera.getCamera();
+
+private var pnt:Point = new Point(0,0);
+private var rect:Rectangle = new Rectangle(0,0,800,600);
+
+//private var feed  :BitmapData = new BitmapData(800, 600, false, 0x000000);
+
+private var bufferData:BitmapData = new BitmapData(800, 600, true, 0x000000);
+private var canvasData:BitmapData = new BitmapData(800, 600, true, 0x000000);
+
+
+private var maskData:BitmapData = new BitmapData(800, 600, true, 0x000000);
+
+private var backgroundData  :BitmapData = new BitmapData(800, 600, true, 0x000000);
+private var bgCaptured :Boolean = false;
+private var myImage:Image = new Image();
+private var bgImage:Image = new Image();
+private var diffImage:Image = new Image();
+	    private function creationComplete():void {
+
+
+		   // vbox0.height = 0;
+		   // vbox0.width = 0;
+                if (camera) {
+			//camera.setMode(800,600,15);
+			myImage.x = 800;
+			myImage.y = 0;
+			myImage.width = 200;
+			myImage.height = 150;
+			myCanvas.addChild(myImage);	
+
+			bgImage.x = 800;
+			bgImage.y = 150;
+			bgImage.width = 200;
+			bgImage.height = 150;
+			myCanvas.addChild(bgImage);
+			diffImage.x = 800;
+			diffImage.y = 300;
+			diffImage.width = 200;
+			diffImage.height = 150;
+			myCanvas.addChild(diffImage);	
+			    
+		            videoDisplay.attachCamera(camera);
+			    camera.addEventListener(ActivityEvent.ACTIVITY, onActivityStart);			
+                } else {
+                    Alert.show("You don't seem to have a camera.");
+                }
+            }
+
+
+
+	function onActivityStart(evt:ActivityEvent):void {
+		addEventListener(Event.ENTER_FRAME, onRun);
+		camera.removeEventListener(ActivityEvent.ACTIVITY, onActivityStart);
+	}
+
+	function onRun(evt:Event):void{
+		if ( !bgCaptured && (Math.random() > 0.99)){ 
+			backgroundData.draw(videoDisplay);
+			bgCaptured = true; 
+			//Alert.show("Background captured.");
+			bgImage.source = new Bitmap(backgroundData, "auto", true);;
+		}else{
+			if(bgCaptured){
+				bufferData.draw(videoDisplay);
+
+				maskData.draw(backgroundData);
+				maskData.draw(bufferData, new Matrix(), new ColorTransform(), BlendMode.DIFFERENCE);
+
+
+// remove all unchanged pixels. Make them transparent
+var pt:Point = new Point(0, 0);
+var rect:Rectangle = new Rectangle(0, 0, 800, 600);
+var threshold:uint = 0x20;
+var color:uint = 0x00000000;
+var maskColor:uint = 0x00ffffff;
+
+//var diffBmpData:BitmapData  = bufferData.compare(backgroundData) as BitmapData;
+//maskData.copyPixels(diffBmpData, rect, pt);
+
+
+
+
+for (var i:int = 0; i < 3; i++) 
+	//maskData.threshold(backgroundData, rect, pt, "<=", threshold << (i * 4), 0xFF000000, 0xFF << (i * 8));
+
+var testcolor:uint = 0x000000FF;
+ color = 0x00000001;
+ maskColor = 0xFFFFFFFF;
+//var pixelCount:int= maskData.threshold(maskData, rect, pt, ">", testcolor, color, maskColor, false);
+
+
+//maskData.threshold(maskData, rect, pt, "<=", 0x88 << 4 , 0xFFFFFFFF, 0xFF << 8 );
+//maskData.copyChannel(maskData, rect, pt,BitmapDataChannel.RED,BitmapDataChannel.ALPHA  );
+//maskData.copyChannel(maskData, rect, pt,BitmapDataChannel.GREEN,BitmapDataChannel.ALPHA  );
+//maskData.copyChannel(maskData, rect, pt,BitmapDataChannel.RED,BitmapDataChannel.ALPHA  );
+
+
+var Emboss_Matrix:Array =             [  0, -1, 0 ,
+    -1, 4, -1 ,
+     0, -1, 0 ];
+
+
+
+//Read more: http://www.graphicmania.net/bitmap-data-manipulation-in-flash-actionscript-3/#ixzz1q3wRZ9Ek
+//maskData.applyFilter( maskData, maskData.rect, new Point(), new ConvolutionFilter( 3 , 3, Emboss_Matrix, 1 ) );
+
+
+
+
+diffImage.source = new Bitmap(maskData, "auto", true);;
+
+// colour what’s left black
+//maskData.draw(maskData, new Matrix(), new ColorTransform(0, 0, 0, 1, 0, 0, 0, 0));
+
+
+// Blur to improve quality
+var filter:BlurFilter = new BlurFilter();
+//maskData.applyFilter(maskData, maskData.rect 	, new Point(0, 0), filter);
+
+canvasData.copyChannel(maskData, rect, pt,BitmapDataChannel.ALPHA,BitmapDataChannel.ALPHA);
+canvasData.copyChannel(bufferData, rect, pt,BitmapDataChannel.RED,BitmapDataChannel.RED  );
+canvasData.copyChannel(bufferData, rect, pt,BitmapDataChannel.GREEN,BitmapDataChannel.GREEN  );
+canvasData.copyChannel(bufferData, rect, pt,BitmapDataChannel.BLUE,BitmapDataChannel.BLUE  );
+
+//bufferData.copyChannel(maskData, rect, pt,BitmapDataChannel.ALPHA,BitmapDataChannel.GREEN  );
+
+myImage.source = new Bitmap(canvasData, "auto", true);;
+
+
+			//	var diffBmpData:BitmapData = bufferData.compare(backgroundData) as BitmapData;
+				
+//canvasData.copyPixels(diffBmpData, rect, pnt);		
+
+				
+//				myImage.source = new Bitmap(diffBmpData, "auto", true);;
+				
+			}
+		}
+//prevData.draw(videoDisplay);
+
+		
+//buffer.draw(prev, null, null, BlendMode.DIFFERENCE,null,true);		
+
+
+   
+     
+
+
+		//buffer.copyChannel(background, rect, pnt, BitmapDataChannel.ALPHA, BitmapDataChannel.BLUE);
+
+		
+		//buffer.draw(background, null, null, BlendMode.ALPHA,null,true);		
+		
+		//drawEffect(buffer, );
+		
+	}
+
+	
+
+        ]]>
+    </mx:Script>
+
+
+<!--mx:TileList id="tileList" dataProvider="{arrColl}" width="100%" height="100%" columnWidth="160"  rowHeight="120" verticalScrollPolicy="on"  dataChange="validateNow()" >
+            <mx:itemRenderer>
+              <mx:Component>
+			<mx:Image source="{data.imagem}" />
+                </mx:Component>
+            </mx:itemRenderer>
+</mx:TileList-->
+ 
+ <mx:Canvas id="myCanvas" 
+      height="100%" width="100%"
+      borderStyle="solid" 
+      backgroundColor="0x000000">
+ <mx:VBox id="vbox0">
+	    <mx:VideoDisplay id="videoDisplay"
+		    width="800"
+		    height="600" /> 
+
+	  
+	  </mx:VBox>
+	
+ </mx:Canvas>
+
+
+  <mx:Label id="contad"  text="Label1"/>
+  <!--mx:Button id="button"
+            label="Run"
+            click="takePicture(null);" /-->
+</mx:Application>

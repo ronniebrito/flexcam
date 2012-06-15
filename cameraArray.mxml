@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- http://blog.flexexamples.com/2008/01/22/displaying-a-webcams-video-in-a-flex-videodisplay-control/ -->
+<mx:Application name="VideoDisplay_attachCamera_test"
+        xmlns:mx="http://www.adobe.com/2006/mxml"
+         layout="absolute"
+  applicationComplete="creationComplete()"
+  width="100%"
+  height="100%"
+ 
+  frameRate="100">
+ 
+    <mx:Script>
+        <![CDATA[
+           
+	    import mx.controls.Alert;
+            import mx.collections.ArrayCollection;
+	    import mx.controls.Image;
+	    import mx.controls.VideoDisplay;
+	    import flash.media.Camera;
+
+		private var ticker:Timer = new Timer(1);
+		private var contador:int = 0;
+		private var imagens: Array = new Array()
+                private var camera:Camera = Camera.getCamera();;
+
+	    private function creationComplete():void {
+/*
+imagens[0] = 'a';
+imagens[1] = 'b';
+imagens[2] = 'c';
+imagens[3] = 'd';
+imagens[4] = 'e';
+
+imagens.push('final');
+contad.text = imagens.toString();
+imagens.unshift('comeco');
+contad.text = contad.text + " " + imagens.toString();
+
+imagens.pop();
+contad.text = contad.text + " " +  imagens.toString();
+imagens.shift();
+contad.text = contad.text + " " + imagens.toString(); */
+
+
+                if (camera) {
+		    vbox0.height = 0;
+		    vbox0.width = 0;
+                    videoDisplay.attachCamera(camera);
+//populate initial images	
+		    configuraTimer();
+			
+                } else {
+                    Alert.show("You don't seem to have a camera.");
+                }
+            }
+
+	    private function takePicture(event:TimerEvent):void{
+
+		if(!camera.muted){	
+				//if( String(imagens.length) == "144" ){ 
+				if( imagens.length == 144 ){ 
+					imagens.pop();
+				}
+				contad.text = String(imagens.unshift(snapshot()));	
+				for(var i:Number = 0; i < imagens.length; i++ ){
+					imagens[i].x = (i%12) * imagens[i].width;
+					imagens[i].y = (int(i/12)%12) * imagens[i].height; 					
+					myCanvas.addChild(imagens[i]);	
+				}	
+			    	
+//imagens.reverse();	
+		}
+}
+
+	 private function configuraTimer():void{ 		
+		ticker.addEventListener(TimerEvent.TIMER, takePicture);
+		ticker.start();
+	}
+	
+	private function snapshot():Image {
+		var snapshot:BitmapData = new BitmapData(videoDisplay.width, videoDisplay.height, true);
+		snapshot.draw(videoDisplay);
+		var snapshotbitmap:Bitmap = new Bitmap(snapshot);	
+		var myImage:Image = new Image();
+		myImage.source = snapshotbitmap;
+		myImage.alpha = 1;
+		return myImage;
+	}
+
+        ]]>
+    </mx:Script>
+
+
+<!--mx:TileList id="tileList" dataProvider="{arrColl}" width="100%" height="100%" columnWidth="160"  rowHeight="120" verticalScrollPolicy="on"  dataChange="validateNow()" >
+            <mx:itemRenderer>
+              <mx:Component>
+			<mx:Image source="{data.imagem}" />
+                </mx:Component>
+            </mx:itemRenderer>
+</mx:TileList-->
+  <mx:VBox id="vbox0">
+    <mx:VideoDisplay id="videoDisplay"
+            width="120"
+            height="90" /> 
+
+  
+  </mx:VBox>
+ <mx:Canvas id="myCanvas" 
+      height="100%" width="100%"
+      borderStyle="solid" 
+      backgroundColor="0x664400" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+
+
+ </mx:Canvas>
+
+
+  <mx:Label id="contad"  text="Label1"/>
+  <!--mx:Button id="button"
+            label="Run"
+            click="takePicture(null);" /-->
+</mx:Application>
